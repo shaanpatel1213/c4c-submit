@@ -13,7 +13,7 @@ If you don't have them already, you'll need to install Node.js/NPM and Git:
 
 1. Clone this repo on to your computer. You can do so with the [desktop app](https://desktop.github.com/), or in a terminal with the following:
 ```
-git clone https://github.com/huang0h/c4c-challenge-ts-fall-2024.git
+git clone https://github.com/huang0h/c4c-challenge-sample.git
 ```
 2. In a terminal, run `npm install` **at the root of this project** to install the required packages
 3. Run `npm run dev` **at the root of this project** to start the app locally
