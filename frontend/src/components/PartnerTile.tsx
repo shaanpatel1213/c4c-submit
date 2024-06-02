@@ -1,26 +1,50 @@
-import { PartnerData } from "../types";
-
-/*
-  A block for a single partner, containing information for them
-  along with any tools to manage said information
-*/
+import React, { useState } from 'react';
+import { PartnerData } from '../types';
 
 interface PartnerTileProps {
-  partnerData: PartnerData
+    partnerData: PartnerData;
+    onDelete: () => void;
+    onEdit: (updatedDetails: PartnerData) => void;
 }
 
-// @ts-expect-error: This variable is currently unused. You will have to either use them or remove them (at which point you should remove this comment)
-function PartnerTile({ partnerData }: PartnerTileProps) {
+const PartnerTile: React.FC<PartnerTileProps> = ({ partnerData, onDelete, onEdit }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedPartner, setEditedPartner] = useState(partnerData);
 
-  return (
-    <div className="partner-tile">
-      <img className="partner-thumbnail" src='' />
-      <hr />
-      <div className="partner-info">
-        This is some placeholder content - you'll need to replace the content here with actual partner information.
-      </div>
-    </div>
-  )
-}
+    const handleEdit = () => {
+        onEdit(editedPartner);
+        setIsEditing(false);
+    };
+
+
+    return (
+        <div className="partner-tile">
+            <img className="partner-thumbnail" src={partnerData.thumbnailUrl} alt={partnerData.name} />
+            <hr />
+            <div className="partner-info">
+                {isEditing ? (
+                    <div>
+                        <input type="text" value={editedPartner.name} onChange={(e) => setEditedPartner({ ...editedPartner, name: e.target.value })} />
+                        <input type="text" value={editedPartner.thumbnailUrl} onChange={(e) => setEditedPartner({ ...editedPartner, thumbnailUrl: e.target.value })} />
+                        <textarea value={editedPartner.description} onChange={(e) => setEditedPartner({ ...editedPartner, description: e.target.value })} />
+                        <label>
+                            Active:
+                            <input type="checkbox" checked={editedPartner.active} onChange={(e) => setEditedPartner({ ...editedPartner, active: e.target.checked })} />
+                        </label>
+                        <button onClick={handleEdit}>Save</button>
+                    </div>
+                ) : (
+                    <div>
+                        <h2>{partnerData.name}</h2>
+                        <p>{partnerData.description}</p>
+                        <p>{partnerData.active ? 'Active' : 'Inactive'}</p>
+                        <button onClick={() => setIsEditing(true)}>Edit</button>
+                        <button onClick={onDelete}>Delete</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 export default PartnerTile;

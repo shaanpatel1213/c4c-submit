@@ -1,44 +1,87 @@
-import express, { Express } from 'express';
-import { PartnerData } from './types';
+import express, { Express, Request, Response } from 'express';
+import fs from 'fs';
+import { PartnerData, PartnerDetails } from './types';
 
 const app: Express = express();
 const port = 4000;
+const DATA_FILE = 'partners.json';
 
-// Some partner data
-const partners: PartnerData = {
-  "sftt": {
-    "thumbnailUrl": "https://c4cneu-public.s3.us-east-2.amazonaws.com/Site/sfft-project-page.png",
-    "name": "Speak For The Trees",
-    "description": "Speak for the Trees Boston aims to improve the size and health of the urban forest in the greater Boston area, with a focus on under-served and under-canopied neighborhoods. They work with volunteers to inventory (collect data) trees, plant trees, and educate those about trees. C4C has built a tree stewardship application for SFTT that allows users to participate in conserving Boston's urban forest. Across Boston, hundreds of trees have been adopted and cared for.",
-  }
+// Load data from file or initialize an empty object
+let partners: PartnerData = {};
+if (fs.existsSync(DATA_FILE)) {
+  partners = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 }
 
-/* 
-  APPLICATION MIDDLEWARE
-  This section contains some server configuration.
-  You will likely not need to change anything here to meet the requirements.
-  (but you are welcome to, if you'd like)
-*/
-
-// Parse request bodies as JSON
+// Middleware
 app.use(express.json());
-// Enable CORS for the frontend so it can call the backend
 app.use((_req, res, next) => {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
-})
+});
 
-/*
-  APPLICATION ROUTES
-*/
+// Basic auth middleware
+const authMiddleware = (req: Request, res: Response, next: Function) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader === 'Bearer secret-token') {
+    next();
+  } else {
+    res.sendStatus(403);
+  }
+};
 
-app.get('/', (_req, res) => {
+// Save data to file
+const saveDataToFile = () => {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(partners, null, 2));
+};
+
+// Routes
+app.get('/partners', (_req: Request, res: Response) => {
   res.status(200).send(partners);
-})
+});
 
-// Start the backend
+app.post('/partners', authMiddleware, (req: Request, res: Response) => {
+  const newPartner: PartnerDetails = req.body;
+  const id = new Date().getTime().toString();
+  partners[id] = newPartner;
+  saveDataToFile();
+  res.status(201).send(newPartner);
+});
+
+app.put('/partners/:id', authMiddleware, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updatedPartner: PartnerDetails = req.body;
+  if (partners[id]) {
+    partners[id] = updatedPartner;
+    saveDataToFile();
+    res.status(200).send(updatedPartner);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+app.delete('/partners/:id', authMiddleware, (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (partners[id]) {
+    delete partners[id];
+    saveDataToFile();
+    res.sendStatus(204);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+// Search partners
+app.get('/search', (req: Request, res: Response) => {
+  const { query, active } = req.query;
+  const result = Object.entries(partners).filter(([_, details]) => {
+    return (query ? details.name.includes(query as string) : true) &&
+        (active ? details.active === (active === 'true') : true);
+  }).map(([id, details]) => ({ id, details }));
+  res.status(200).send(result);
+});
+
 app.listen(port, () => {
   console.log(`Express server starting on port ${port}!`);
-})
+});
