@@ -85,3 +85,5 @@ app.get('/search', (req: Request, res: Response) => {
 app.listen(port, () => {
   console.log(`Express server starting on port ${port}!`);
 });
+
+export default app;
