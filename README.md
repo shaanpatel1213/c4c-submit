@@ -13,8 +13,8 @@
 ### Installation
 1. Clone the repository:
    ```sh
-   git clone https://github.com/shaanpatel1213/c4c-challenge-submit
-   cd c4c-challenge-submit
+   git clone https://github.com/shaanpatel1213/c4c-submit
+   cd c4c-submit
    
 
 2. Install dependencies:
