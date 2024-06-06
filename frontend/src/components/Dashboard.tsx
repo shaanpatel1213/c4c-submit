@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
             <h1>Partners Dashboard</h1>
             <div className="search-bar">
                 <input type="text" placeholder="Search by name" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                <select value={searchActive ?? ''} onChange={(e) => setSearchActive(e.target.value === '' ? null : e.target.value === 'true')}>
+                <select value={searchActive ?? ' '} onChange={(e) => setSearchActive(e.target.value === '' ? null : e.target.value === 'true')}>
                     <option value="">All</option>
                     <option value="true">Active</option>
                     <option value="false">Inactive</option>
